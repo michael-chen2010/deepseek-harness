@@ -708,6 +708,18 @@ async function main() {
   const probe = spawnSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' })
   if (probe.status !== 0) return
   const root = stripGitLineTerminator(probe.stdout)
+  const superprojectProbe = spawnSync(
+    'git',
+    ['rev-parse', '--show-superproject-working-tree'],
+    { cwd: root, encoding: 'utf8' },
+  )
+  if (
+    superprojectProbe.status === 0
+    && stripGitLineTerminator(superprojectProbe.stdout) !== ''
+  ) {
+    console.log('[install-lefthook] skipped in Git submodule checkout')
+    return
+  }
   const isWindows = process.platform === 'win32'
   const lefthook = join(root, 'node_modules', '.bin', isWindows ? 'lefthook.cmd' : 'lefthook')
   if (!existsSync(lefthook)) return
